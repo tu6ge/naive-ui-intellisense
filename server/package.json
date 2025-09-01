@@ -1,12 +1,14 @@
 {
   "name": "naive-lsp-server",
   "version": "0.1.0",
-  "main": "server.js",
+  "main": "dist/server.js",
   "type": "commonjs",
   "bin": {
     "naive-lsp": "server.js"
   },
   "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "tu6ge",
@@ -16,5 +18,10 @@
     "@vue/compiler-dom": "^3.4.38",
     "@vue/compiler-sfc": "^3.4.38",
     "vscode-languageserver": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.103.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
   }
 }
