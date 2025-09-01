@@ -6,13 +6,14 @@ import { parse as parseSFC, SFCParseResult } from '@vue/compiler-sfc'
 import { ElementNode, Node, NodeTypes, parse as parseTemplate, RootNode, TemplateChildNode } from '@vue/compiler-dom'
 const fs = require('fs')
 const path = require('path')
+import { TextDocument } from 'vscode-languageserver-textdocument'
 
 const naiveSchema = JSON.parse(fs.readFileSync(path.join(__dirname, '../naive.schema.json'), 'utf8'))
 
 const connection = createConnection(ProposedFeatures.all)
-const documents = new TextDocuments()
+const documents = new TextDocuments(TextDocument)
 
-function positionToOffset(text: string, position: Position) {
+function positionToOffset(text: string, position: Position): number {
   const lines = text.split(/\r?\n/)
   let offset = 0
   for (let i = 0; i < position.line; i++) offset += lines[i].length + 1 // '\n'
@@ -123,6 +124,7 @@ function inStartTagPropsZone(el: Node, relOffset: number, templateSource: string
 
 /** 根据上下文给出补全项 */
 function completeAt(docText: string, pos: Position) {
+  //connection.console.log(docText)
   // return [
   //   {
   //     label:'n-button',
@@ -139,23 +141,27 @@ function completeAt(docText: string, pos: Position) {
   const rel = docOffset - templateStartInDoc
   if (rel < 0 || rel > content.length) return []
 
-  // 解析 template 成 AST（节点 loc.offset 相对 template 开头）
-  let ast: RootNode
-  try {
-    ast = parseTemplate(content, { comments: false })
-  } catch {
-    return []
-  }
+  //connection.console.log(ast)
 
   // 1) 若在文本中出现 `<n-` 且位于标签名上下文：提示组件名
   // 简单向后看不到 '>' 且向前近距离存在 '<n-'
   const left = content.slice(Math.max(0, rel - 32), rel)
-  if (/<n-[\w-]*$/.test(left)) {
+  if (/<n\-[\w\-]*$/g.test(left)) {
+    //connection.console.log('match regex')
     return Object.entries(naiveSchema).map(([name, meta]) => ({
       label: name,
       kind: CompletionItemKind.Class, // 7
       detail: 'Naive UI component'
     }))
+  }
+
+  // 解析 template 成 AST（节点 loc.offset 相对 template 开头）
+  let ast: RootNode
+  try {
+    ast = parseTemplate(content, { comments: false })
+  } catch (error) {
+    connection.console.log(error)
+    return []
   }
 
   // 2) 找到包含当前 offset 的最小元素
@@ -215,14 +221,14 @@ connection.onInitialize(() => {
 })
 
 connection.onCompletion((params: CompletionParams) => {
-  connection.console.log('触发了代码补全222')
-  return [
-    {
-      label: 'n-button',
-      kind: CompletionItemKind.Class, // 7
-      detail: 'Naive UI component'
-    }
-  ]
+  connection.console.log('触发了代码补全')
+  // return [
+  //   {
+  //     label: 'n-button',
+  //     kind: CompletionItemKind.Class, // 7
+  //     detail: 'Naive UI component'
+  //   }
+  // ]
   const doc = documents.get(params.textDocument.uri)
   if (!doc) return []
   try {
