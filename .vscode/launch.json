@@ -10,10 +10,14 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
+				"--extensionDevelopmentPath=${workspaceRoot}"
 			],
+			"runtimeExecutable": "${execPath}",
+			"autoAttachChildProcesses": true,
 			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
+				"${workspaceRoot}/dist/**/*.js",
+				"${workspaceRoot}/server/**/*.js",
+				"${workspaceRoot}/server/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
 		},
