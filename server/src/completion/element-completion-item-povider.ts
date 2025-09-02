@@ -18,7 +18,7 @@ import { localDocument } from '../document'
 import { ExtensionConfigutation, ExtensionLanguage } from '..'
 import { DocumentAttribute, DocumentEvent } from '../document'
 
-export class ElementCompletionItemProvider implements CompletionItemProvider<CompletionItem> {
+export class ElementCompletionItemProvider {
   private _document!: TextDocument
   private _position!: Position
   private token!: CancellationToken
@@ -300,10 +300,9 @@ export class ElementCompletionItemProvider implements CompletionItemProvider<Com
    * @param token token
    * @param context 上下文
    */
-  provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext): ProviderResult<CompletionItem[] | CompletionList<CompletionItem>> {
+  provideCompletionItems(document: TextDocument, position: Position): ProviderResult<CompletionItem[] | CompletionList<CompletionItem>> {
     this._document = document
     this._position = position
-    this.token = token
 
     let tag: TagObject | undefined = this.getPreTag()
     let attr = this.getPreAttr()
