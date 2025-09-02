@@ -1,6 +1,7 @@
-import { CompletionParams, Position } from 'vscode-languageserver'
+import { CompletionItem, CompletionList, CompletionParams, Position } from 'vscode-languageserver'
 
-const { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, CompletionItemKind } = require('vscode-languageserver/node')
+const { ProposedFeatures, TextDocumentSyncKind, CompletionItemKind } = require('vscode-languageserver/node')
+import { createConnection, TextDocuments } from 'vscode-languageserver/node'
 
 import { parse as parseSFC, SFCParseResult } from '@vue/compiler-sfc'
 import { ElementNode, Node, NodeTypes, parse as parseTemplate, RootNode, TemplateChildNode } from '@vue/compiler-dom'
@@ -11,14 +12,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument'
 const naiveSchema = JSON.parse(fs.readFileSync(path.join(__dirname, '../naive.schema.json'), 'utf8'))
 
 const connection = createConnection(ProposedFeatures.all)
-const documents = new TextDocuments(TextDocument)
-
-function positionToOffset(text: string, position: Position): number {
-  const lines = text.split(/\r?\n/)
-  let offset = 0
-  for (let i = 0; i < position.line; i++) offset += lines[i].length + 1 // '\n'
-  return offset + position.character
-}
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 
 /** 找到光标所在的 template 内容与其在整份文本中的起始 offset */
 function getTemplateContent(text: string): { content: string; templateStartInDoc: number } | null {
@@ -123,7 +117,7 @@ function inStartTagPropsZone(el: Node, relOffset: number, templateSource: string
 }
 
 /** 根据上下文给出补全项 */
-function completeAt(docText: string, pos: Position) {
+function completeAt(doc: TextDocument, pos: Position): CompletionItem[] | CompletionList | undefined | null {
   //connection.console.log(docText)
   // return [
   //   {
@@ -132,7 +126,8 @@ function completeAt(docText: string, pos: Position) {
   //     detail: 'Naive UI component'
   //   }
   // ]
-  const docOffset = positionToOffset(docText, pos)
+  const docText = doc.getText()
+  const docOffset = doc.offsetAt(pos)
 
   const tpl = getTemplateContent(docText)
   if (!tpl) return []
@@ -160,7 +155,7 @@ function completeAt(docText: string, pos: Position) {
   try {
     ast = parseTemplate(content, { comments: false })
   } catch (error) {
-    connection.console.log(error)
+    connection.console.log(JSON.stringify(error))
     return []
   }
 
@@ -208,7 +203,6 @@ function completeAt(docText: string, pos: Position) {
 
 // ========== LSP 服务器 ==========
 connection.onInitialize(() => {
-  connection.console.log('navie ui lsp server initing')
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -229,10 +223,10 @@ connection.onCompletion((params: CompletionParams) => {
   //     detail: 'Naive UI component'
   //   }
   // ]
-  const doc = documents.get(params.textDocument.uri)
+  const doc: TextDocument | undefined = documents.get(params.textDocument.uri)
   if (!doc) return []
   try {
-    return completeAt(doc.getText(), params.position)
+    return completeAt(doc, params.position)
   } catch (e) {
     // 避免出错影响体验
     return []
