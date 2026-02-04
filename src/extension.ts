@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
+import * as fs from 'fs'
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node'
 
 let client: LanguageClient
@@ -27,9 +28,20 @@ export function activate(context: vscode.ExtensionContext) {
     documentSelector: [{ scheme: 'file', language: 'vue' }] // 绑定语言
   }
 
-  client = new LanguageClient('NaiveClient', 'My Naive Client', serverOptions, clientOptions)
+  client = new LanguageClient('NaiveClient', 'Naive UI Intelligence', serverOptions, clientOptions)
 
   client.start()
+
+  // 🔥 热更新监听
+  if (process.env.NODE_ENV !== 'production') {
+    const chokidar = require('chokidar')
+    const watcher = chokidar.watch(serverModule)
+    watcher.on('change', () => {
+      console.log('[LSP Server] server.js changed, restarting client...')
+      client.stop().then(() => client.start())
+    })
+    context.subscriptions.push({ dispose: () => watcher.close() })
+  }
 }
 
 export function deactivate(): Promise<void> | undefined {
