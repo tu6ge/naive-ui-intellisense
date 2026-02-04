@@ -26,7 +26,7 @@ export default [
             sourceMap: true
           },
           include: ['src/**/*'],
-          exclude: ['node_modules']
+          exclude: ['node_modules', 'server']
         },
         abortOnError: false
       })
