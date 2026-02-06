@@ -1,10 +1,10 @@
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import json from '@rollup/plugin-json';
-import { terser } from 'rollup-plugin-terser';
-import copy from 'rollup-plugin-copy';
+import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
+import terser from '@rollup/plugin-terser'
+import copy from 'rollup-plugin-copy'
 
-const production = process.env.NODE_ENV === 'production';
+const production = process.env.NODE_ENV === 'production'
 
 export default [
   // Client extension
@@ -41,7 +41,7 @@ export default [
       exports: 'auto'
     },
     external: [
-      'vscode',
+      'vscode'
       // 'vscode-languageserver',
       // 'vscode-languageserver-textdocument',
       // 'https',
@@ -66,12 +66,12 @@ export default [
       production && terser(),
       copy({
         targets: [
-          { 
-            src: 'server/cache/json', 
-            dest: 'cache/' 
+          {
+            src: 'server/cache/json',
+            dest: 'cache/'
           }
         ]
       })
     ]
   }
-];
+]
