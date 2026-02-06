@@ -26,7 +26,7 @@ server/node_modules/**
 test/**
 
 # Cache
-server/.cache/**
+server/cache/**
 
 # Build files
 **/.DS_Store
