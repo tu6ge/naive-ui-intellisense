@@ -148,4 +148,125 @@ export class NaiveUIMetadataExtractor {
   public getComponentNames(): string[] {
     return Array.from(this.componentsMeta.keys())
   }
+
+  public fallbackComponentsDocPath(): { [key: string]: string } {
+    return {
+      // anchor / breadcrumb
+      'anchor-link': 'anchor',
+      'breadcrumb-item': 'breadcrumb',
+
+      // avatar / badge / button
+      'avatar-group': 'avatar',
+      badge: 'badge',
+      'button-group': 'button',
+
+      // carousel / checkbox / collapse / steps / radio
+      'carousel-item': 'carousel',
+      'checkbox-group': 'checkbox',
+      'collapse-item': 'collapse',
+      radio: 'radio',
+      'radio-button': 'radio',
+      'radio-group': 'radio',
+      step: 'steps',
+
+      // date / descriptions
+      'date-picker': 'date-picker',
+      'descriptions-item': 'descriptions',
+
+      // dialog / drawer / providers
+      'dialog-provider': 'dialog',
+      'drawer-content': 'drawer',
+      'loading-bar-provider': 'loading-bar',
+      'message-provider': 'message',
+      'modal-provider': 'modal',
+      'notification-provider': 'notification',
+
+      // ellipsis / text
+      ellipsis: 'ellipsis',
+      'performant-ellipsis': 'ellipsis',
+      text: 'typography',
+
+      // float button
+      'float-button-group': 'float-button',
+
+      // form (all shared)
+      'form-item': 'form',
+      'form-item-col': 'form',
+      'form-item-gi': 'form',
+      'form-item-grid-item': 'form',
+      'form-item-row': 'form',
+
+      // grid / row / col / gi
+      gi: 'grid',
+      'grid-item': 'grid',
+      row: 'grid',
+      col: 'grid',
+
+      // layout
+      layout: 'layout',
+      'layout-content': 'layout',
+      'layout-footer': 'layout',
+      'layout-header': 'layout',
+      'layout-sider': 'layout',
+
+      // icon / image
+      'icon-wrapper': 'icon',
+      'image-group': 'image',
+      'image-preview': 'image',
+
+      // input
+      'input-group': 'input',
+      'input-group-label': 'input',
+      'input-otp': 'input',
+
+      // upload
+      'upload-dragger': 'upload',
+      'upload-file-list': 'upload',
+      'upload-trigger': 'upload',
+
+      // infinite / virtual
+      'infinite-scroll': 'infinite-scroll',
+      'virtual-list': 'virtual-list',
+
+      // list / timeline / thing
+      'list-item': 'list',
+      'timeline-item': 'timeline',
+      thing: 'thing',
+
+      // qr / tooltip
+      'qr-code': 'qr-code',
+      tooltip: 'tooltip',
+
+      // tabs
+      tab: 'tabs',
+      'tab-pane': 'tabs',
+
+      // table semantic
+      thead: 'table',
+      tbody: 'table',
+      tr: 'table',
+      th: 'table',
+      td: 'table',
+
+      // typography / html-like
+      a: 'typography',
+      blockquote: 'typography',
+      h1: 'typography',
+      h2: 'typography',
+      h3: 'typography',
+      h4: 'typography',
+      h5: 'typography',
+      h6: 'typography',
+      hr: 'typography',
+      li: 'typography',
+      ol: 'typography',
+      p: 'typography',
+      ul: 'typography',
+
+      // misc
+      el: 'element',
+      'global-style': 'global-style',
+      'legacy-transfer': 'transfer'
+    }
+  }
 }
