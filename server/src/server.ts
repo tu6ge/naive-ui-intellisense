@@ -143,7 +143,12 @@ connection.onHover((textDocumentPosition: TextDocumentPositionParams): Hover | n
   if (vueParser.isOnTagName(text, offset)) {
     const meta = metadataExtractor.getComponentMeta(currentElementTag)
     if (meta && meta.description) {
-      const url = `https://www.naiveui.com/zh-CN/os-theme/components/${currentElementTag.replace(/^n-/, '')}`
+      const fallbackPath = metadataExtractor.fallbackComponentsDocPath()
+      const tag = currentElementTag.replace(/^n-/, '')
+      let url = `https://www.naiveui.com/zh-CN/os-theme/components/${tag}`
+      if (fallbackPath[tag]) {
+        url = `https://www.naiveui.com/zh-CN/os-theme/components/${fallbackPath[tag]}`
+      }
       return {
         contents: {
           kind: MarkupKind.Markdown,
