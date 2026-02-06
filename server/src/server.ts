@@ -17,6 +17,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import { NaiveUIMetadataExtractor } from './metadata'
 import { RegexVueParser } from './regexVueParser'
+import { NaiveUIExtractor } from './naiveUIExtractor'
 
 // 创建连接
 const connection = createConnection(ProposedFeatures.all)
@@ -184,14 +185,16 @@ connection.onHover((textDocumentPosition: TextDocumentPositionParams): Hover | n
 
 // 辅助函数：获取组件名补全
 function getComponentCompletions(): CompletionItem[] {
-  const components = metadataExtractor.getAllComponents()
+  const ui = new NaiveUIExtractor()
+
+  const components = ui.extractAll()
   return components.map((comp) => ({
     label: comp.tag,
     kind: CompletionItemKind.Class,
     detail: 'Naive UI',
     documentation: {
       kind: MarkupKind.Markdown,
-      value: comp.description || ''
+      value: ''
     },
     insertText: `${comp.tag}$1>$2</${comp.tag}>`,
     insertTextFormat: InsertTextFormat.Snippet
