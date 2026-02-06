@@ -150,6 +150,18 @@ connection.onHover((textDocumentPosition: TextDocumentPositionParams): Hover | n
           value: `**${meta.name}**\n\n${meta.description}\n\n[Naive UI 文档](${url})`
         }
       }
+    } else {
+      const fallbackPath = metadataExtractor.fallbackComponentsDocPath()
+      const tag = currentElementTag.replace(/^n-/, '')
+      if (fallbackPath[tag]) {
+        const url = `https://www.naiveui.com/zh-CN/os-theme/components/${fallbackPath[tag]}`
+        return {
+          contents: {
+            kind: MarkupKind.Markdown,
+            value: `**${currentElementTag}**\n\n[Naive UI 文档](${url})`
+          }
+        }
+      }
     }
   }
 
