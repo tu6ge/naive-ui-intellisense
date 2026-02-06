@@ -12,38 +12,34 @@ import {
   DidChangeConfigurationNotification,
   TextDocumentSyncKind,
   InsertTextFormat
-} from 'vscode-languageserver/node';
+} from 'vscode-languageserver/node'
 
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { NaiveUIMetadataExtractor } from './metadata';
-import { RegexVueParser } from './regexVueParser';
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import { NaiveUIMetadataExtractor } from './metadata'
+import { RegexVueParser } from './regexVueParser'
 
 // 创建连接
-const connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all)
 
 // 创建文档管理器
-const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 
 // 元数据提取器
-const metadataExtractor = new NaiveUIMetadataExtractor(false);
+const metadataExtractor = new NaiveUIMetadataExtractor(false)
 
 // Vue 正则解析器
-const vueParser = new RegexVueParser();
+const vueParser = new RegexVueParser()
 
-let hasConfigurationCapability = false;
-let hasWorkspaceFolderCapability = false;
+let hasConfigurationCapability = false
+let hasWorkspaceFolderCapability = false
 
-metadataExtractor.initialize();
+metadataExtractor.initialize()
 
 connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
+  const capabilities = params.capabilities
 
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
+  hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration)
+  hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders)
 
   const result: InitializeResult = {
     capabilities: {
@@ -54,146 +50,142 @@ connection.onInitialize((params: InitializeParams) => {
       },
       hoverProvider: true
     }
-  };
+  }
 
   if (hasWorkspaceFolderCapability) {
     result.capabilities.workspace = {
       workspaceFolders: {
         supported: true
       }
-    };
+    }
   }
 
-  return result;
-});
+  return result
+})
 
 connection.onInitialized(async () => {
   if (hasConfigurationCapability) {
-    connection.client.register(DidChangeConfigurationNotification.type, undefined);
+    connection.client.register(DidChangeConfigurationNotification.type, undefined)
   }
 
   // 异步初始化元数据提取器
-  console.log('Starting metadata initialization...');
+  console.log('Starting metadata initialization...')
   try {
-    await metadataExtractor.initialize();
-    console.log('Metadata initialization completed');
+    await metadataExtractor.initialize()
+    console.log('Metadata initialization completed')
   } catch (error) {
-    console.error('Metadata initialization failed:', error);
+    console.error('Metadata initialization failed:', error)
     // 失败时使用同步初始化（手动元数据）
-    metadataExtractor.initializeSync();
+    metadataExtractor.initializeSync()
   }
-});
+})
 
 // 补全提供
-connection.onCompletion(
-  (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    const document = documents.get(textDocumentPosition.textDocument.uri);
-    if (!document) {
-      return [];
-    }
-
-    const text = document.getText();
-    const offset = document.offsetAt(textDocumentPosition.position);
-
-    // 场景 1: 组件名补全 - 检测 <n- 后面
-    if (vueParser.shouldTriggerComponentCompletion(text, offset)) {
-      return getComponentCompletions();
-    }
-
-    // 场景 2: 属性名补全
-    if (vueParser.shouldTriggerAttributeCompletion(text, offset)) {
-      const element = vueParser.findElementAtPosition(text, offset);
-      if (element && isNaiveUIComponent(element.tag)) {
-        return getAttributeCompletions(element.tag);
-      }
-    }
-
-    // 场景 3: 属性值补全
-    if (vueParser.shouldTriggerValueCompletion(text, offset)) {
-      const element = vueParser.findElementAtPosition(text, offset);
-      const currentAttr = vueParser.findAttributeAtPosition(text, offset);
-      
-      if (element && currentAttr && isNaiveUIComponent(element.tag)) {
-        return getAttributeValueCompletions(element.tag, currentAttr.name);
-      }
-    }
-
-    return [];
+connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+  const document = documents.get(textDocumentPosition.textDocument.uri)
+  if (!document) {
+    return []
   }
-);
+
+  const text = document.getText()
+  const offset = document.offsetAt(textDocumentPosition.position)
+
+  // 场景 1: 组件名补全 - 检测 <n- 后面
+  if (vueParser.shouldTriggerComponentCompletion(text, offset)) {
+    return getComponentCompletions()
+  }
+
+  // 场景 2: 属性名补全
+  if (vueParser.shouldTriggerAttributeCompletion(text, offset)) {
+    const element = vueParser.findElementAtPosition(text, offset)
+    if (element && isNaiveUIComponent(element.tag)) {
+      return getAttributeCompletions(element.tag)
+    }
+  }
+
+  // 场景 3: 属性值补全
+  if (vueParser.shouldTriggerValueCompletion(text, offset)) {
+    const element = vueParser.findElementAtPosition(text, offset)
+    const currentAttr = vueParser.findAttributeAtPosition(text, offset)
+
+    if (element && currentAttr && isNaiveUIComponent(element.tag)) {
+      return getAttributeValueCompletions(element.tag, currentAttr.name)
+    }
+  }
+
+  return []
+})
 
 // 补全项解析
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  return item;
-});
+  return item
+})
 
 // Hover 提供
-connection.onHover(
-  (textDocumentPosition: TextDocumentPositionParams): Hover | null => {
-    const document = documents.get(textDocumentPosition.textDocument.uri);
-    if (!document) {
-      return null;
-    }
+connection.onHover((textDocumentPosition: TextDocumentPositionParams): Hover | null => {
+  const document = documents.get(textDocumentPosition.textDocument.uri)
+  if (!document) {
+    return null
+  }
 
-    const text = document.getText();
-    const offset = document.offsetAt(textDocumentPosition.position);
+  const text = document.getText()
+  const offset = document.offsetAt(textDocumentPosition.position)
 
-    // 查找当前元素
-    const currentElementTag = vueParser.findTagAtPositionOnHover(text, offset);
+  // 查找当前元素
+  const currentElementTag = vueParser.findTagAtPositionOnHover(text, offset)
 
-    if (currentElementTag==null){
-      return null
-    }
+  if (currentElementTag == null) {
+    return null
+  }
 
-    // 检查是否在标签名上
-    if (vueParser.isOnTagName(text, offset)) {
-      const meta = metadataExtractor.getComponentMeta(currentElementTag);
-      if (meta && meta.description) {
-        const url = `https://www.naiveui.com/zh-CN/os-theme/components/${currentElementTag.replace(/^n-/, '')}`;
-        return {
-          contents: {
-            kind: MarkupKind.Markdown,
-            value: `**${meta.name}**\n\n${meta.description}\n\n[Naive UI 文档](${url})`
-          }
-        };
-      }
-    }
-
-    // 检查是否在属性上
-    const currentAttr = vueParser.findAttributeAtPosition(text, offset);
-    if (currentAttr && vueParser.isOnAttributeName(text, offset)) {
-      const meta = metadataExtractor.getComponentMeta(currentElementTag);
-      if (meta) {
-        // 移除可能的 : 或 @ 前缀
-        const cleanAttrName = currentAttr.name.replace(/^[:@]/, '');
-        const prop = meta.props.find(p => p.name === cleanAttrName);
-        
-        if (prop && prop.description) {
-          let hoverText = `**${prop.name}**: \`${prop.type}\`\n\n${prop.description}`;
-          if (prop.default !== undefined) {
-            hoverText += `\n\n*默认值:* \`${prop.default}\``;
-          }
-          if (prop.options && prop.options.length > 0) {
-            hoverText += `\n\n*可选值:* ${prop.options.map(o => `\`${o}\``).join(', ')}`;
-          }
-          return {
-            contents: {
-              kind: MarkupKind.Markdown,
-              value: hoverText
-            }
-          };
+  // 检查是否在标签名上
+  if (vueParser.isOnTagName(text, offset)) {
+    const meta = metadataExtractor.getComponentMeta(currentElementTag)
+    if (meta && meta.description) {
+      const url = `https://www.naiveui.com/zh-CN/os-theme/components/${currentElementTag.replace(/^n-/, '')}`
+      return {
+        contents: {
+          kind: MarkupKind.Markdown,
+          value: `**${meta.name}**\n\n${meta.description}\n\n[Naive UI 文档](${url})`
         }
       }
     }
-
-    return null;
   }
-);
+
+  // 检查是否在属性上
+  const currentAttr = vueParser.findAttributeAtPosition(text, offset)
+  if (currentAttr && vueParser.isOnAttributeName(text, offset)) {
+    const meta = metadataExtractor.getComponentMeta(currentElementTag)
+    if (meta) {
+      // 移除可能的 : 或 @ 前缀
+      const cleanAttrName = currentAttr.name.replace(/^[:@]/, '')
+      const prop = meta.props.find((p) => p.name === cleanAttrName)
+
+      if (prop && prop.description) {
+        let hoverText = `**${prop.name}**: \`${prop.type}\`\n\n${prop.description}`
+        if (prop.default !== undefined) {
+          hoverText += `\n\n*默认值:* \`${prop.default}\``
+        }
+        if (prop.options && prop.options.length > 0) {
+          hoverText += `\n\n*可选值:* ${prop.options.map((o) => `\`${o}\``).join(', ')}`
+        }
+        return {
+          contents: {
+            kind: MarkupKind.Markdown,
+            value: hoverText
+          }
+        }
+      }
+    }
+  }
+
+  return null
+})
 
 // 辅助函数：获取组件名补全
 function getComponentCompletions(): CompletionItem[] {
-  const components = metadataExtractor.getAllComponents();
-  return components.map(comp => ({
+  const components = metadataExtractor.getAllComponents()
+  return components.map((comp) => ({
     label: comp.tag,
     kind: CompletionItemKind.Class,
     detail: 'Naive UI',
@@ -202,18 +194,18 @@ function getComponentCompletions(): CompletionItem[] {
       value: comp.description || ''
     },
     insertText: `${comp.tag}$1>$2</${comp.tag}>`,
-    insertTextFormat: InsertTextFormat.Snippet,
-  }));
+    insertTextFormat: InsertTextFormat.Snippet
+  }))
 }
 
 // 辅助函数：获取属性名补全
 function getAttributeCompletions(tagName: string): CompletionItem[] {
-  const meta = metadataExtractor.getComponentMeta(tagName);
+  const meta = metadataExtractor.getComponentMeta(tagName)
   if (!meta) {
-    return [];
+    return []
   }
 
-  return meta.props.map(prop => ({
+  return meta.props.map((prop) => ({
     label: prop.name,
     kind: CompletionItemKind.Property,
     detail: prop.type,
@@ -222,39 +214,36 @@ function getAttributeCompletions(tagName: string): CompletionItem[] {
       value: prop.description || ''
     },
     insertText: prop.name
-  }));
+  }))
 }
 
 // 辅助函数：获取属性值补全
-function getAttributeValueCompletions(
-  tagName: string,
-  attrName: string
-): CompletionItem[] {
-  const meta = metadataExtractor.getComponentMeta(tagName);
+function getAttributeValueCompletions(tagName: string, attrName: string): CompletionItem[] {
+  const meta = metadataExtractor.getComponentMeta(tagName)
   if (!meta) {
-    return [];
+    return []
   }
 
-  const prop = meta.props.find(p => p.name === attrName);
+  const prop = meta.props.find((p) => p.name === attrName)
   if (!prop || !prop.options || prop.options.length === 0) {
-    return [];
+    return []
   }
 
-  return prop.options.map(option => ({
+  return prop.options.map((option) => ({
     label: option,
     kind: CompletionItemKind.Value,
     detail: `${prop.name} option`,
     insertText: `${option}`
-  }));
+  }))
 }
 
 // 辅助函数：检查是否是 Naive UI 组件
 function isNaiveUIComponent(tagName: string): boolean {
-  return tagName.startsWith('n-') || tagName.startsWith('N');
+  return tagName.startsWith('n-') || tagName.startsWith('N')
 }
 
 // 监听文档
-documents.listen(connection);
+documents.listen(connection)
 
 // 启动连接
-connection.listen();
+connection.listen()
