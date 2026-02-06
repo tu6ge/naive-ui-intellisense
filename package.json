@@ -1,8 +1,8 @@
 {
-  "name": "naive-ui-intelligence",
+  "name": "naive-ui-intellisense",
   "displayName": "Naive UI IntelliSense",
-  "version": "0.1.11",
-  "description": "Document Hover Tips And Autocomplete Tools.",
+  "description": "LSP-based IntelliSense for Naive UI components",
+  "version": "0.2.0",
   "author": {
     "name": "tu6ge",
     "email": "tu6ge@qq.com",
@@ -16,94 +16,56 @@
     "url": "https://github.com/tu6ge/naive-ui-intellisense.git"
   },
   "engines": {
-    "vscode": "^1.50.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
-    "Snippets",
-    "Other"
+    "Programming Languages"
   ],
   "activationEvents": [
     "onLanguage:vue"
   ],
-  "main": "./dist/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Naive UI Config",
+      "title": "Naive UI IntelliSense",
       "properties": {
-        "naive-ui-intellisense.language": {
-          "type": "string",
-          "default": "zh-CN",
-          "description": "Document Language of Navie UI",
-          "enum": [
-            "zh-CN",
-            "en-US"
-          ]
-        },
-        "NaiveClient.trace.server": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
+        "naiveUI.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Naive UI IntelliSense"
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm build",
-    "watch": "pnpm watch:server & pnpm watch:client",
-    "watch:client": "pnpm rollup --config ./rollup.config.js -w",
-    "watch:server": "cd server && pnpm watch",
-    "pretest": "pnpm lint",
-    "lint": "eslint src",
-    "test": "node ./out/test/runTest.js",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
-    "commit": "git-cz",
-    "docs": "node ./src/document/document-builder.js",
+    "vscode:prepublish": "npm run build",
+    "download":"cd server && npm run download",
+    "build": "npm run build:client && npm run build:server && rollup -c",
+    "build:client": "tsc -p client/tsconfig.json",
+    "build:server": "tsc -p server/tsconfig.json",
+    "build:prod": "NODE_ENV=production rollup -c",
+    "watch": "rollup -c -w",
+    "compile": "npm run build",
     "package": "vsce package",
-    "build": "pnpm build:server && pnpm build:client",
-    "build:client": "pnpm rollup --config ./rollup.config.js",
-    "build:server": "cd server && pnpm build"
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@types/glob": "^9",
-    "@types/mocha": "^8.0.4",
-    "@types/node": "^12.11.7",
-    "@types/vscode": "1.50.0",
-    "chokidar": "^5.0.0",
-    "commitizen": "^4.2.3",
-    "conventional-changelog": "^3.1.24",
-    "conventional-changelog-cli": "^2.1.1",
-    "glob": "^9",
-    "mocha": "^8.2.1",
-    "prettier": "^2.2.1",
-    "rollup": "^2.56.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/minimatch": "^6.0.0",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.75.0",
+    "rollup": "^3.0.0",
+    "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5",
-    "vsce": "^2",
-    "vscode-test": "^1.5.0",
-    "yorkie": "^2.0.0"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
-  "gitHooks": {},
-  "lint-staged": {
-    "*.{ts,js}": [
-      "prettier --write",
-      "eslint"
-    ]
+    "tslib": "^2.6.0",
+    "typescript": "^5.0.0",
+    "vsce": "^2.15.0"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^8.1.0"
   }
 }

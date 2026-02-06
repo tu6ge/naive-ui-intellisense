@@ -1,0 +1,11 @@
+{
+  "name": "naive-ui-intellisense-client",
+  "description": "VSCode extension client for Naive UI IntelliSense",
+  "version": "1.0.0",
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0"
+  }
+}

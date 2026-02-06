@@ -1,12 +1,34 @@
+# Source files
+client/src/**
+server/src/**
+*.ts
+!out/**/*.d.ts
+
+# Config files
+tsconfig.json
+client/tsconfig.json
+server/tsconfig.json
+rollup.config.js
+
+# Development
 .vscode/**
 .vscode-test/**
-out/test/**
-src/**
 .gitignore
-.yarnrc
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/.eslintrc.json
+.eslintrc.json
 **/*.map
-**/*.ts
-/asstes
+
+# Dependencies
+node_modules/**
+client/node_modules/**
+server/node_modules/**
+
+# Test files
+test/**
+
+# Cache
+server/.cache/**
+
+# Build files
+**/.DS_Store
+
+*.vsix
