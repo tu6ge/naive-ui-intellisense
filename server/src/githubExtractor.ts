@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { NaiveUIExtractor } from './naiveUIExtractor'
 import { Project } from 'ts-morph'
+import { NaiveUIMetadataExtractor } from './metadata'
 
 export interface PropMetadata {
   name: string
@@ -81,7 +82,19 @@ export class NaiveUIGithubExtractor {
       }
 
       // 从文档中提取
-      const docContent = await this.fetchComponentDoc(componentName)
+      let docContent = await this.fetchComponentDoc(componentName)
+      if (!docContent) {
+        const metadata = new NaiveUIMetadataExtractor(true)
+        let fallbackPaths = metadata.fallbackComponentsDocPath()
+
+        if (fallbackPaths[componentName]) {
+          const fallbackContent = await this.fetchComponentDoc(fallbackPaths[componentName])
+          if (fallbackContent) {
+            docContent = fallbackContent
+          }
+        }
+      }
+
       if (!docContent) {
         return null
       }
