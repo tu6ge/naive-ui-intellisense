@@ -1,38 +1,77 @@
-/* eslint-disable */
-import path from 'path'
-import pkg from './package.json'
-import { terser } from 'rollup-plugin-terser'
-import { nodeResolve } from '@rollup/plugin-node-resolve'
-import typescript from 'rollup-plugin-typescript2'
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import { terser } from 'rollup-plugin-terser';
+import copy from 'rollup-plugin-copy';
 
-const deps = Object.keys(pkg.dependencies || {})
+const production = process.env.NODE_ENV === 'production';
 
 export default [
+  // Client extension
   {
-    input: path.resolve(__dirname, `./src/extension.ts`), //入口
+    input: 'client/out/extension.js',
     output: {
-      format: 'cjs', // umd格式
-      file: 'dist/extension.js', // 输出文件
-      name: pkg.name // 指定name
+      file: 'out/extension.js',
+      format: 'cjs',
+      sourcemap: !production,
+      exports: 'auto'
     },
-    sourcemap: true,
+    external: ['vscode'],
     plugins: [
-      terser(),
-      nodeResolve(),
-      typescript({
-        tsconfigOverride: {
-          compilerOptions: {
-            declaration: true,
-            sourceMap: true
-          },
-          include: ['src/**/*'],
-          exclude: ['node_modules', 'server']
-        },
-        abortOnError: false
+      // typescript({
+      //   tsconfig: 'client/tsconfig.json',
+      //   sourceMap: !production,
+      //   inlineSources: !production
+      // }),
+      resolve({
+        preferBuiltins: true
+      }),
+      commonjs(),
+      json(),
+      production && terser()
+    ]
+  },
+  // Language Server
+  {
+    input: 'server/out/server.js',
+    output: {
+      file: 'out/server.js',
+      format: 'cjs',
+      sourcemap: !production,
+      exports: 'auto'
+    },
+    external: [
+      'vscode',
+      // 'vscode-languageserver',
+      // 'vscode-languageserver-textdocument',
+      // 'https',
+      // 'fs',
+      // 'path',
+      // 'util',
+      // 'crypto',
+      // 'stream',
+      // 'events'
+    ],
+    plugins: [
+      // typescript({
+      //   tsconfig: 'server/tsconfig.json',
+      //   sourceMap: !production,
+      //   inlineSources: !production
+      // }),
+      resolve({
+        preferBuiltins: true
+      }),
+      commonjs(),
+      json(),
+      production && terser(),
+      copy({
+        targets: [
+          { 
+            src: 'server/cache/json', 
+            dest: 'cache/' 
+          }
+        ]
       })
-    ], // 插件
-    external(id) {
-      return deps.some((k) => new RegExp('^' + k).test(id))
-    }
+    ]
   }
-]
+];

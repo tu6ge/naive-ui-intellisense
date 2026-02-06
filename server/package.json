@@ -1,29 +1,32 @@
 {
-  "name": "naive-lsp-server",
-  "version": "0.1.0",
+  "name": "naive-ui-intellisense-server",
+  "description": "Language server for Naive UI IntelliSense",
+  "version": "1.0.0",
   "main": "dist/server.js",
-  "type": "commonjs",
-  "bin": {
-    "naive-lsp": "server.js"
-  },
-  "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch",
-    "watch": "WATCH=true vite build --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "tu6ge",
-  "license": "MIT",
-  "description": "",
+  "files": [
+    "dist",
+    "cache/json"
+  ],
   "dependencies": {
-    "@vue/compiler-dom": "^3.4.38",
-    "@vue/compiler-sfc": "^3.4.38",
-    "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.12"
+    "@vue/compiler-sfc": "^3.3.0",
+    "naive-ui": "^2.35.0",
+    "typescript": "^5.0.0",
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-textdocument": "^1.0.8"
   },
   "devDependencies": {
-    "@types/vscode": "^1.103.0",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.3"
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@types/node": "^18.0.0",
+    "rollup": "^4.57.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "tsx": "^4.21.0"
+  },
+  "scripts": {
+    "download": "node scripts/prebuild.js",
+    "compile": "tsc -p ./",
+    "build": "npm run compile && rollup -c",
+    "dev": "tsx watch src/server.ts --stdio"
   }
 }
