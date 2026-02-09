@@ -2,7 +2,6 @@ import * as https from 'https'
 import * as fs from 'fs'
 import * as path from 'path'
 import { NaiveUIExtractor } from './naiveUIExtractor'
-import { Project } from 'ts-morph'
 import { NaiveUIMetadataExtractor } from './metadata'
 
 export interface PropMetadata {
