@@ -158,22 +158,37 @@ export class RegexVueParser {
   public isOnTagName(content: string, offset: number): boolean {
     const beforeCursor = content.substring(0, offset)
 
-    // 检查光标前是否是标签名
-    // 匹配: <n-button|, <n-in|
-    const match = beforeCursor.match(/<(n-[\w-]*)$/)
-    if (match) {
-      return true
+    // 统一抓取 tag（不管 n-input 还是 NInput）
+    // <n-in|, <NInp|
+    const tagMatch = beforeCursor.match(/<([A-Za-z][\w-]*)$/)
+    if (tagMatch) {
+      const rawTag = tagMatch[1]
+      return this.isNaiveTag(rawTag)
     }
 
-    // 检查光标是否在已完成的标签名中
-    // 匹配: <n-but|ton type="primary">
-    const beforeMatch = beforeCursor.match(/<(n-[\w-]+)/)
-    if (beforeMatch) {
+    // 光标在已输入的 tagName 中
+    // <n-but|ton>, <NInp|ut>
+    const partialMatch = beforeCursor.match(/<([A-Za-z][\w-]+)/)
+    if (partialMatch) {
+      const rawTag = partialMatch[1]
+      if (!this.isNaiveTag(rawTag)) return false
+
       const tagStart = beforeCursor.lastIndexOf('<')
-      const tagNameEnd = tagStart + 1 + beforeMatch[1].length
-      if (offset <= tagNameEnd) {
-        return true
-      }
+      const tagNameEnd = tagStart + 1 + rawTag.length
+      return offset <= tagNameEnd
+    }
+
+    return false
+  }
+
+  private isNaiveTag(rawTag: string): boolean {
+    // <n-input>
+    if (rawTag.startsWith('n-')) return true
+
+    // <NInput>
+    // 必须是 N + 大写字母开头，避免误判 <Nav>
+    if (rawTag.startsWith('N') && /[A-Z]/.test(rawTag[1])) {
+      return true
     }
 
     return false
