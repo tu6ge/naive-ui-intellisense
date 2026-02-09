@@ -270,3 +270,67 @@ export class NaiveUIMetadataExtractor {
     }
   }
 }
+
+export interface ComponentProp {
+  name: string
+  type: string
+  description?: string
+  default?: any
+  required?: boolean
+  options?: string[] // 枚举值选项
+}
+
+export function generatePropsTable(props: ComponentProp[]): string {
+  if (!props || props.length === 0) {
+    return ''
+  }
+
+  // 定义表头
+  const headers = ['名称', '类型', '描述', '默认值', '必填', '选项']
+  const headerRow = `| ${headers.join(' | ')} |`
+  const separatorRow = `| ${headers.map(() => '---').join(' | ')} |`
+
+  // 生成表格行
+  const rows = props.map((prop) => {
+    // 处理名称
+    const name = prop.name || ''
+
+    // 处理类型
+    const type = prop.type ? `\`${prop.type}\`` : ''
+
+    // 处理描述
+    const description = prop.description || ''
+
+    // 处理默认值
+    let defaultValue = ''
+    if (prop.default !== undefined) {
+      if (typeof prop.default === 'string') {
+        defaultValue = prop.default.length > 0 ? `\`"${prop.default}"\`` : '`""`'
+      } else if (typeof prop.default === 'boolean') {
+        defaultValue = prop.default ? '`true`' : '`false`'
+      } else if (typeof prop.default === 'number') {
+        defaultValue = `\`${prop.default}\``
+      } else if (prop.default === null) {
+        defaultValue = '`null`'
+      } else if (prop.default === undefined) {
+        defaultValue = '`undefined`'
+      } else {
+        defaultValue = `\`${JSON.stringify(prop.default)}\``
+      }
+    }
+
+    // 处理必填
+    const required = prop.required ? '是' : '否'
+
+    // 处理选项
+    let options = ''
+    if (prop.options && prop.options.length > 0) {
+      options = prop.options.map((opt) => `\`${opt}\``).join(', ')
+    }
+
+    return `| ${name} | ${type} | ${description} | ${defaultValue} | ${required} | ${options} |`
+  })
+
+  // 组合成完整表格
+  return [headerRow, separatorRow, ...rows].join('\n')
+}

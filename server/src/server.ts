@@ -15,7 +15,7 @@ import {
 } from 'vscode-languageserver/node'
 
 import { TextDocument } from 'vscode-languageserver-textdocument'
-import { NaiveUIMetadataExtractor } from './metadata'
+import { generatePropsTable, NaiveUIMetadataExtractor } from './metadata'
 import { RegexVueParser } from './regexVueParser'
 import { NaiveUIExtractor } from './naiveUIExtractor'
 
@@ -149,10 +149,12 @@ connection.onHover((textDocumentPosition: TextDocumentPositionParams): Hover | n
       if (fallbackPath[tag]) {
         url = `https://www.naiveui.com/zh-CN/os-theme/components/${fallbackPath[tag]}`
       }
+
+      const props_md = generatePropsTable(meta.props)
       return {
         contents: {
           kind: MarkupKind.Markdown,
-          value: `**${meta.name}**\n\n${meta.description}\n\n[Naive UI 文档](${url})`
+          value: `**${meta.name}**\n\n${meta.description}\n\n**Props**\n\n${props_md}\n\n[Naive UI 文档](${url})`
         }
       }
     } else {
