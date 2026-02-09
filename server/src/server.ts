@@ -47,7 +47,7 @@ connection.onInitialize((params: InitializeParams) => {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       completionProvider: {
         resolveProvider: true,
-        triggerCharacters: ['<', ' ', ':', '@', '"', "'"]
+        triggerCharacters: ['<', 'N', ' ', ':', '@', '"', "'"]
       },
       hoverProvider: true
     }
@@ -94,6 +94,9 @@ connection.onCompletion((textDocumentPosition: TextDocumentPositionParams): Comp
   // 场景 1: 组件名补全 - 检测 <n- 后面
   if (vueParser.shouldTriggerComponentCompletion(text, offset)) {
     return getComponentCompletions()
+  }
+  if (vueParser.shouldTriggerComponentCompletionUpper(text, offset)) {
+    return getComponentCompletionsUpper()
   }
 
   // 场景 2: 属性名补全
@@ -218,6 +221,35 @@ function getComponentCompletions(): CompletionItem[] {
     insertText: `${comp.tag}$1>$2</${comp.tag}>`,
     insertTextFormat: InsertTextFormat.Snippet
   }))
+}
+
+function getComponentCompletionsUpper(): CompletionItem[] {
+  const ui = new NaiveUIExtractor()
+
+  const components = ui.extractAll()
+
+  // 写一个函数，input-group -> InputGroup
+  function toPascalCase(tag: string): string {
+    return tag
+      .split('-')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('')
+  }
+
+  return components.map((comp) => {
+    const upperTag = toPascalCase(comp.tag)
+    return {
+      label: upperTag,
+      kind: CompletionItemKind.Class,
+      detail: 'Naive UI',
+      documentation: {
+        kind: MarkupKind.Markdown,
+        value: ''
+      },
+      insertText: `${upperTag}$1>$2</${upperTag}>`,
+      insertTextFormat: InsertTextFormat.Snippet
+    }
+  })
 }
 
 // 辅助函数：获取属性名补全
