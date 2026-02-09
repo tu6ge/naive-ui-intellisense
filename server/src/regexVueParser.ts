@@ -25,39 +25,60 @@ export class RegexVueParser {
    * 查找光标位置的元素
    */
   public findElementAtPosition(content: string, offset: number): ElementInfo | null {
-    // 向前查找最近的开始标签
     const beforeCursor = content.substring(0, offset)
     const afterCursor = content.substring(offset)
 
-    // 匹配开始标签（包括不完整的）
-    // 支持: <n-button, <n-button type="primary", <n-button type="primary">
-    const tagPattern = /<(n-[\w-]+)([^>]*)$/
+    // 同时支持 <n-input 和 <NInput
+    const tagPattern = /<([A-Za-z][\w-]*)([^>]*)$/
     const match = beforeCursor.match(tagPattern)
 
     if (!match) {
       return null
     }
 
-    const tagName = match[1]
-    const tagStart = beforeCursor.lastIndexOf('<' + tagName)
+    const rawTagName = match[1]
+    const normalizedTag = this.normalizeNaiveTag(rawTagName)
+
+    if (!normalizedTag) {
+      return null
+    }
+
+    const tagStart = beforeCursor.lastIndexOf('<' + rawTagName)
     const attrsText = match[2]
 
-    // 查找标签结束位置
     const closeMatch = afterCursor.match(/^[^>]*>/)
     const isComplete = closeMatch !== null
     const tagEnd = isComplete ? offset + closeMatch[0].length : content.length
 
-    // 解析属性
     const fullTagText = content.substring(tagStart, tagEnd)
     const attributes = this.parseAttributes(fullTagText, tagStart)
 
     return {
-      tag: tagName,
+      tag: 'n-' + normalizedTag, // ← 统一后的 tag（input / form-item）
       startOffset: tagStart,
       endOffset: tagEnd,
       attributes,
       isComplete
     }
+  }
+  private normalizeNaiveTag(rawTag: string): string | null {
+    // <n-input> -> input
+    if (rawTag.startsWith('n-')) {
+      return rawTag.slice(2)
+    }
+
+    // <NInput> -> input
+    if (rawTag.startsWith('N') && /[A-Z]/.test(rawTag[1])) {
+      // PascalCase -> kebab-case
+      const kebab = rawTag
+        .replace(/^N/, '')
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .toLowerCase()
+
+      return kebab
+    }
+
+    return null
   }
 
   public findTagAtPositionOnHover(content: string, offset: number): string | null {
@@ -67,13 +88,16 @@ export class RegexVueParser {
     const tagStart = content.lastIndexOf('<', offset - 1)
     if (tagStart === -1 || tagStart + 1 >= len) return null
 
-    // 从 '<' 向后扫描，直到空格、'>' 或光标后第一个不合法字符
+    // 从 '<' 后扫描 tag 名
     let i = tagStart + 1
-    while (i < len && /[^\s>]/.test(content[i])) i++
+    while (i < len && /[^\s>/]/.test(content[i])) {
+      i++
+    }
 
-    const tagName = content.substring(tagStart + 1, i)
+    const rawTag = content.substring(tagStart + 1, i)
 
-    return tagName.startsWith('n-') ? tagName : null
+    let tag = this.normalizeNaiveTag(rawTag)
+    return tag ? 'n-' + tag : null
   }
 
   /**
@@ -272,6 +296,16 @@ export class RegexVueParser {
   }
 
   /**
+   * 检查是否应该触发组件名补全
+   */
+  public shouldTriggerComponentCompletionUpper(content: string, offset: number): boolean {
+    const beforeCursor = content.substring(0, offset)
+
+    // 检查是否刚输入 <N
+    return /<N[\w]*$/.test(beforeCursor)
+  }
+
+  /**
    * 检查是否应该触发属性名补全
    */
   public shouldTriggerAttributeCompletion(content: string, offset: number): boolean {
@@ -281,7 +315,7 @@ export class RegexVueParser {
     }
 
     // 检查是否是 naive-ui 组件
-    if (!element.tag.startsWith('n-')) {
+    if (!(element.tag.startsWith('n-') || element.tag.startsWith('N'))) {
       return false
     }
 
