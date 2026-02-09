@@ -1,12 +1,21 @@
 {
-  "name": "naive-ui-intellisense-server",
+  "name": "naive-ui-language-server",
   "description": "Language server for Naive UI IntelliSense",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "dist/server.js",
   "files": [
     "dist",
     "cache/json"
   ],
+  "author": {
+    "name": "tu6ge",
+    "email": "tu6ge@qq.com",
+    "url": "https://github.com/tu6ge"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu6ge/naive-ui-intellisense.git"
+  },
   "dependencies": {
     "@vue/compiler-sfc": "^3.3.0",
     "naive-ui": "^2.35.0",
