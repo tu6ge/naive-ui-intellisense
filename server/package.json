@@ -30,13 +30,14 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@types/minimatch": "^6.0.0",
     "@types/node": "^18.0.0",
+    "cross-env": "^10.1.0",
     "rollup": "^4.57.1",
     "tsx": "^4.21.0"
   },
   "scripts": {
     "download": "node scripts/prebuild.js",
     "compile": "tsc -p ./",
-    "build": "npm run compile && rollup -c",
+    "build": "npm run compile && cross-env NODE_ENV=production rollup -c",
     "dev": "tsx watch src/server.ts --stdio"
   }
 }

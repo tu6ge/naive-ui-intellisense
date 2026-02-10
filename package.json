@@ -41,7 +41,7 @@
   "scripts": {
     "vscode:prepublish": "npm run build",
     "download": "cd server && npm run download",
-    "build": "npm run build:client && npm run build:server && rollup -c",
+    "build": "npm run build:client && npm run build:server && cross-env NODE_ENV=production rollup -c",
     "build:client": "tsc -p client/tsconfig.json",
     "build:server": "tsc -p server/tsconfig.json",
     "build:prod": "NODE_ENV=production rollup -c",
@@ -59,6 +59,7 @@
     "@types/minimatch": "^6.0.0",
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.75.0",
+    "cross-env": "^10.1.0",
     "rollup": "^3.0.0",
     "rollup-plugin-copy": "^3.5.0",
     "tslib": "^2.6.0",
