@@ -2,7 +2,7 @@
   "name": "naive-ui-intelligence",
   "displayName": "Naive UI IntelliSense",
   "description": "LSP-based IntelliSense for Naive UI components",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "tu6ge",
     "email": "tu6ge@qq.com",
