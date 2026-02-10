@@ -218,8 +218,7 @@ function getComponentCompletions(): CompletionItem[] {
       kind: MarkupKind.Markdown,
       value: ''
     },
-    insertText: `${comp.tag}$1>$2</${comp.tag}>`,
-    insertTextFormat: InsertTextFormat.Snippet
+    insertText: `${comp.tag}></${comp.tag}>`
   }))
 }
 

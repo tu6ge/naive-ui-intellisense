@@ -1,7 +1,7 @@
 {
   "name": "naive-ui-language-server",
   "description": "Language server for Naive UI IntelliSense",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/server.js",
   "files": [
     "dist",
